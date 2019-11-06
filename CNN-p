@@ -1,0 +1,66 @@
+# Réseaux de neurone à convolution 
+
+# Partie 1 - Construction du réseau de neurones à convolution
+
+# Importation des modules 
+from keras.models import Sequential 
+from keras.layers import Convolution2D
+from keras.layers import MaxPooling2D
+from keras.layers import Flatten
+from keras.layers import Dense
+
+# Initialiser le CNN
+classifier = Sequential()
+
+# Etape 1 : Ajout de la couche de convolution 
+classifier.add(Convolution2D(filters=32, kernel_size=3, strides=1,
+                             input_shape=(64, 64, 3), activation= "relu"))
+
+# Etape 2 : Pooling 
+classifier.add(MaxPooling2D(pool_size=(2,2)))
+
+# Etape 3 : Flattening
+classifier.add(Flatten())
+
+# Etape 4 : Couche complètement connecté
+classifier.add(Dense(units=128, activation="relu"))
+classifier.add(Dense(units=1, activation="sigmoid"))
+
+# Compilation
+classifier.compile(optimizer="adam", loss="binary_crossentropy",
+                   metrics=["accuracy"])
+
+# Entraîner le CNN sur nos images
+from keras.preprocessing.image import ImageDataGenerator
+train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+training_set = train_datagen.flow_from_directory(
+        'training_set',
+        target_size=(64, 64),
+        batch_size=32,
+        class_mode='binary')
+
+test_set = test_datagen.flow_from_directory(
+        'test_set',
+        target_size=(64, 64),
+        batch_size=32,
+        class_mode='binary')
+
+classifier.fit_generator(
+        training_set,
+        steps_per_epoch=250,
+        epochs=25,
+        validation_data=test_set,
+        validation_steps=63)
+
+# Améliorer le CNN : on peut agrandir la taille des images 
+# et ajouter d'autres couches de convolution et ajouter une option
+# dropout pour éliminer le surentraînement (dropout sur toutes les 
+# couches complètement connectées) et aussi augmenter le 
+# nombre d'épochs 
